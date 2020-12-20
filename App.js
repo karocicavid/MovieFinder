@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { View, ScrollView, StyleSheet,ActivityIndicator,Text, TextInput, TouchableOpacity,Image, ImageBackground} from 'react-native';
+import { View, ScrollView, StyleSheet,Text, TextInput, TouchableOpacity,Image, ImageBackground, Modal, Button} from 'react-native';
 export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-    dataStateJson : []
+    dataStateJson : [],
+    show:false
     }
   }
   dataJson = [];
@@ -12,10 +13,10 @@ export default class App extends Component {
   movieName = '';
   url1 ='';
 
-
   changeUrl=()=>(
     this.setState({dataStateJson:this.dataJson})
   )
+
   componentDidMount = async () => {
     try {
       const response = await fetch('http://api.tvmaze.com/search/shows?q=superman')
@@ -27,6 +28,7 @@ export default class App extends Component {
 
   componentDidUpdate=async()=>{
     try {
+      this.url1 =  this.url + this.movieName
       const response = await fetch(this.url1)
       const data = await response.json()
       this.dataJson = data
@@ -38,13 +40,12 @@ export default class App extends Component {
   TextUpdate(myText){
     this.movieName=myText,
     this.componentDidUpdate(),
-    this.url1 =  this.url + this.movieName,
-    this.setState({dataStateJson:this.dataJson})
-
+    this.url1 =  this.url + this.movieName
   }
+ 
   render() {
       return(
-        <>  
+        <>
         <ImageBackground source={require('./image/myphoto.jpg')} style={styles.image}>
           <View style={{alignItems:'center'}}>
             <Text style={styles.text}>Enter name of your movie</Text>
@@ -54,20 +55,34 @@ export default class App extends Component {
           <ScrollView> 
                   {this.state.dataStateJson.map((catalog)=>(
                     <View style={{flex:1}}>
-                      <ChangeImage style={styles.imageInput} image = {catalog.show}/> 
+                      <TouchableOpacity onPress={()=>(this.setState({show:true}))}>
+                        <ChangeImage style={styles.imageInput} image = {catalog.show}/>
+                      </TouchableOpacity>
+                      <Modal visible={this.state.show}>
+                      <Button title='Hide Description' onPress={()=>(this.setState({show:false}))}/>
+                        <ScrollView> 
+                          <ModalText show={catalog.show}/>
+                          <ChangeImage style={styles.imageInput} image = {catalog.show}/>
+                        </ScrollView>
+                      </Modal>
                       <Text style={styles.text}>{catalog.show.name}</Text>
-                  </View>
+                    </View>
                 ))}
           </ScrollView>   
         </ImageBackground>
-      </>
+       </>
       )
       
     }
 }
+
 export const ChangeImage = (show)=>{
-   if(show.image.image!==null){return <><Image style={styles.imageInput} source={{uri:show.image.image.medium}}/><Text style={styles.text}>{show.name}</Text></>}
-   else{return <><Image style={styles.imageInput} source ={require('./image/myback.jpg')}/><Text style={styles.text}>{show.nam}</Text></>} 
+   if(show.image.image!==null){return <><Image style={styles.imageInput} source={{uri:show.image.image.medium}}/></>}
+   else{return <><Image style={styles.imageInput} source ={require('./image/myback.jpg')}/></>} 
+}
+export const ModalText = (show)=>{
+    if(show.show.summary!==null){return <><Text style={styles.textModal}>{show.show.summary}</Text></>}
+    else{return <><Text style={styles.textModal}>unavialable info</Text></>}
 }
 export const styles=StyleSheet.create({
   container: {
@@ -76,7 +91,6 @@ export const styles=StyleSheet.create({
     alignItems:'center',
     justifyContent : 'center',
   },
-
   button:{
     flex:0.02,
     borderWidth:2,
@@ -103,8 +117,11 @@ export const styles=StyleSheet.create({
   text:{
     fontSize:26,
     color:'white',
-   
-    color:'white'
+    paddingBottom:15
+  },
+  textModal:{
+    fontSize:26,
+    color:'black',
   },
   logotext:{
     fontSize:26,
@@ -114,7 +131,7 @@ export const styles=StyleSheet.create({
     alignSelf:'flex-end',
   },
   imageInput:{
-    height:400,
+    height:500,
     width:'100%',
     alignSelf:'stretch'
   }
