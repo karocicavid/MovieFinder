@@ -5,7 +5,8 @@ export default class App extends Component {
     super(props)
     this.state = {
     dataStateJson : [],
-    show:false
+    show:false,
+    catalog_show : []
     }
   }
   dataJson = [];
@@ -37,42 +38,45 @@ export default class App extends Component {
     }  
   }
 
-  TextUpdate(myText){
+  textUpdate(myText){
     this.movieName=myText,
     this.componentDidUpdate(),
     this.url1 =  this.url + this.movieName
   }
- 
+  ModalVisible(catalog){
+    this.setState({
+      catalog_show:catalog
+    })
+  }
   render() {
       return(
         <>
         <ImageBackground source={require('./image/myphoto.jpg')} style={styles.image}>
           <View style={{alignItems:'center'}}>
             <Text style={styles.text}>Enter name of your movie</Text>
-            <TextInput style={styles.input} onChangeText={(text)=>(this.TextUpdate(text))}/>
+            <TextInput style={styles.input} onChangeText={(text)=>(this.textUpdate(text))}/>
             <TouchableOpacity style={styles.button} onPress={this.changeUrl}><Text>Search</Text></TouchableOpacity>
           </View>
           <ScrollView> 
                   {this.state.dataStateJson.map((catalog)=>(
-                    <View style={{flex:1}}>
-                      <TouchableOpacity onPress={()=>(this.setState({show:true}))}>
+                    <View style={{flex:1}} key={catalog.show.id}>
+                      <TouchableOpacity onPress={()=>(this.setState({show:true}),this.ModalVisible(catalog.show))}>
                         <ChangeImage style={styles.imageInput} image = {catalog.show}/>
                       </TouchableOpacity>
-                      <Modal visible={this.state.show}>
-                      <Button title='Hide Description' onPress={()=>(this.setState({show:false}))}/>
-                        <ScrollView> 
-                          <ModalText show={catalog.show}/>
-                          <ChangeImage style={styles.imageInput} image = {catalog.show}/>
-                        </ScrollView>
-                      </Modal>
                       <Text style={styles.text}>{catalog.show.name}</Text>
                     </View>
-                ))}
+                  ))}
+                  <Modal visible={this.state.show}>
+                        <Button title='Hide Description' onPress={()=>(this.setState({show:false}))}/>
+                        <ScrollView> 
+                          <ModalText show={this.state.catalog_show}/>
+                          <ChangeImage style={styles.imageInput} image = {this.state.catalog_show}/>
+                        </ScrollView>
+                  </Modal>
           </ScrollView>   
         </ImageBackground>
        </>
       )
-      
     }
 }
 
@@ -81,7 +85,7 @@ export const ChangeImage = (show)=>{
    else{return <><Image style={styles.imageInput} source ={require('./image/myback.jpg')}/></>} 
 }
 export const ModalText = (show)=>{
-    if(show.show.summary!==null){return <><Text style={styles.textModal}>{show.show.summary}</Text></>}
+    if(show.show.summary!==null){return <><Text style={styles.textModal}>{show.show.summary.replace(/(<([^>]+)>)/gi, "")}</Text></>}
     else{return <><Text style={styles.textModal}>unavialable info</Text></>}
 }
 export const styles=StyleSheet.create({
